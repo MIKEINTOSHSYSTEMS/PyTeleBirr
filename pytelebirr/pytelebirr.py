@@ -378,6 +378,7 @@ class PyTeleBirr:
             raise TokenExpired(
                 "[ Error ] : Token Expired"
             )
+        return _res.json()['data']
 
 
 
