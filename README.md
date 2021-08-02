@@ -7,10 +7,10 @@
 <br>
 <a href="https://github.com/telebirrapi/pytelebirr/tree/main/examples">
 Examples</a>
-|
+ | 
 <a href="https://telebirrapi.github.io/PyTeleBirr/">
 Documentation</a>
-|
+ | 
 <a href="https://t.me/PyTeleBirr">  
 Channel</a>
 
