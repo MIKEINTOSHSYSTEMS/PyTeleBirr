@@ -1,16 +1,25 @@
-#Pytelebirr
+<p align="center">
+<a href="https://github.com/telebirrapi/pytelebirr">
+<img src="https://raw.githubusercontent.com/TeleBirrApi/PyTeleBirr/main/.github/images/telebirrapi.png" alt="Pytelebirr">
+</a>
+<br>
+<b>PyTeleBirr is mostly Telebirr With Python</b>
+<br>
+<a href="https://github.com/telebirrapi/pytelebirr/tree/main/examples">
+Examples</a>
+|
+<a href="https://telebirrapi.github.io/pytelebirr">
+Documentation</a>
+|
+<a href="https://t.me/PyTeleBirr">  
+Channel</a>
 
-pytelebirr is mostly telebirr with python
 
-sending, receive payments, checking balance ... etc 
-
-[Examples](https://github.com/telebirrapi/pytelebirr/exmples) | [Documentation](https://github.com/telebirrapi/pytelebirr/exmples)
-
-##Installation
+####Installation
 
 `pip3 install pytelebirr`
 
-##Usage
+####Usage
 
 ````python
 from pytelebirr import PyTeleBirr
@@ -71,3 +80,11 @@ telebirr.send_payment(
 # returns dict
 
 ````
+
+### Features
+- Python solution.
+- Send payment via qr code and phone number
+- Checking balance
+- Generating beautiful qr code
+- Checking transactions
+- Waiting for payment and call function
