@@ -15,11 +15,11 @@ Documentation</a>
 Channel</a>
 
 
-####Installation
+#### Installation
 
 `pip3 install pytelebirr`
 
-####Usage
+#### Usage
 
 ````python
 from pytelebirr import PyTeleBirr
