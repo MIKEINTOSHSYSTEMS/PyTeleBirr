@@ -1,4 +1,4 @@
-class PasswordError(Exception):
+class CredentialError(Exception):
     pass
 
 

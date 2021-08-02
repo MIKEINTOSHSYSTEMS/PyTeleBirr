@@ -1,16 +1,14 @@
+from base64 import b64encode
+from types import SimpleNamespace
+from typing import Callable, Union, List
+from .errors import CredentialError, TokenExpired
+from .utils import password_fixer
 import asyncio
 import json
 import os
 import threading
-from base64 import b64encode
-from types import SimpleNamespace
-from typing import Callable, Union, List, Dict
-
 import requests
 import websocket
-
-from .errors import PasswordError, TokenExpired
-from .utils import password_fixer
 
 
 class PyTeleBirr:
@@ -21,13 +19,15 @@ class PyTeleBirr:
             device_id: str
     ):
         if len(str(passwd)) < 6:
-            raise PasswordError("Password Must Be 6 Digit")
+            raise CredentialError(
+                "Password Must Be 6 Digit"
+            )
         self._headers = {
             'Content-Type': 'application/json; charset=utf-8',
             'Host': 'app.ethiomobilemoney.et:2121',
             'Connection': 'Keep-Alive',
         }
-        self._q_header = {
+        self._qr_header = {
             'authority': 'api.qrcode-monkey.com',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                           'Chrome/91.0.4472.164 Safari/537.36',
@@ -82,7 +82,6 @@ class PyTeleBirr:
             raise TokenExpired(
                 "[ Error ] : Token Expired"
             )
-        print(res.json())
         return json.loads(json.dumps(res.json()['data']), object_hook=lambda d: SimpleNamespace(**d))
 
     def generate_qrcode(
@@ -95,7 +94,12 @@ class PyTeleBirr:
 
         res = self._r.post(
             url,
-            data=json.dumps({"money": amount, "content": ""}),
+            data=json.dumps(
+                {
+                    "money": amount,
+                    "content": ""
+                }
+            ),
             headers=self._header
         )
         if res.json().get("code") in [401]:
@@ -122,7 +126,7 @@ class PyTeleBirr:
                                   '%22%2C%22gradientOnEyes%22%3A%22true%22%2C%22logo%22%3A'
                                   '%22e8cb9ae2340c568713010178b6834ad9edced49f.png%22%2C%22logoMode%22%3A%22clean%22'
                                   '%7D',
-            headers=self._q_header
+            headers=self._qr_header
         )
         if os.path.exists("qr"):
             with open("qr/qr.png", "wb") as f:
@@ -139,13 +143,15 @@ class PyTeleBirr:
         refresh token
         :return:
         """
-        _data = json.dumps({
-            "code": None,
-            "mid": str(self._phone),
-            "password": self._base64_pass,
-            "sid": self._device_id,
-            "language": "en"
-        })
+        _data = json.dumps(
+            {
+                "code": None,
+                "mid": str(self._phone),
+                "password": self._base64_pass,
+                "sid": self._device_id,
+                "language": "en"
+            }
+        )
         _res = self._r.post(
             self._tele_url.format(
                 "service-information/safelogin"
@@ -227,7 +233,6 @@ class PyTeleBirr:
             raise TokenExpired(
                 "[ Error ] : Token Expired"
             )
-        print(_res.json())
         _exists = _res.json()
         if _exists.get("code") in [1000, 401]:
             return False
@@ -260,7 +265,6 @@ class PyTeleBirr:
             raise TokenExpired(
                 "[ Error ] : Token Expired"
             )
-        print(_res.json())
         _exists = _res.json()
         for _tx in _exists:
             if type(_tx) == list:
@@ -379,8 +383,3 @@ class PyTeleBirr:
                 "[ Error ] : Token Expired"
             )
         return _res.json()['data']
-
-
-
-te = PyTeleBirr()
-te.is_my_tx()

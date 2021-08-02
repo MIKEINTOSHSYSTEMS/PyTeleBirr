@@ -1,1 +1,1 @@
-from .error import TokenExpired, PasswordError
+from .error import TokenExpired, CredentialError
