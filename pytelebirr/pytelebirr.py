@@ -1,7 +1,7 @@
 from base64 import b64encode
 from types import SimpleNamespace
 from typing import Callable, Union, List
-from .errors import CredentialError, TokenExpired
+from .errors import CredentialError, TokenExpired, QRExpiredError
 from .utils import password_fixer
 import asyncio
 import json
@@ -43,8 +43,7 @@ class PyTeleBirr:
         self._device_id = device_id
         self._tele_url = "https://app.ethiomobilemoney.et:2121/{}"
         self._r = requests.Session()
-        self._pass = password_fixer(self._passwd)
-        self._base64_pass = b64encode(self._pass.encode()).decode()
+        self._base64_pass = password_fixer(self._passwd)
         self._headers['Content-Length'] = str(len(self._base64_pass))
         data = json.dumps({
             "code": None,
@@ -62,11 +61,13 @@ class PyTeleBirr:
             raise TokenExpired(
                 "[ Error ] : Password, Phone Number or Device id is incorrect"
             )
-        self.token = _res.json()['data']['token']
+        self._token = _res.json()['data']['token']
         self._header = {
-            'amm-token': self.token,
-            "Content-Type": "application/json; charset=utf-8",
-            "Host": "app.ethiomobilemoney.et:2121"
+            'amm-token': self._token,
+            'Content-Type': 'application/json; charset=utf-8',
+            'Host': 'app.ethiomobilemoney.et:2121',
+            'Connection': 'Keep-Alive',
+            'Accept-Encoding': 'gzip'
         }
 
     def get_balance(self) -> object:
@@ -82,7 +83,7 @@ class PyTeleBirr:
             raise TokenExpired(
                 "[ Error ] : Token Expired"
             )
-        return json.loads(json.dumps(res.json()['data']), object_hook=lambda d: SimpleNamespace(**d))
+        return res.json()['data']
 
     def generate_qrcode(
             self,
@@ -163,11 +164,12 @@ class PyTeleBirr:
             raise TokenExpired(
                 "[ Error ] : Password, Phone Number or Device id is incorrect"
             )
-        self.token = _res.json()['data']['token']
+        self._token = _res.json()['data']['token']
+        print("[ Token Refreshed ]")
 
     def on_payment(
             self,
-            on_msg: Callable,
+            on_payment: Callable,
             on_error: Callable = lambda a: print("Socket error"),
             on_open: Callable = lambda a: print("Socket Connected")
     ) -> None:
@@ -179,22 +181,21 @@ class PyTeleBirr:
         for phone number payment or ussd payment use by tx id
         """
 
-        def on_message(_, msg):
-            loop = asyncio.new_event_loop()
-            loop.run_until_complete(on_msg(msg))
+        def _on_message(_, msg):
+            on_payment(msg)
 
-        def on_closed():
+        def _on_closed():
             print("[ Socket Restarted ]")
             self.on_payment(on_msg)
 
         _ws = websocket.WebSocketApp(
             self._tele_url.format(
-                f"websocket?token={self.token}"
+                f"websocket?token={self._token}"
             ).replace("https", "wss"),
             on_open=on_open,
-            on_message=on_message,
+            on_message=_on_message,
             on_error=on_error,
-            on_close=on_closed,
+            on_close=_on_closed,
             header={
                 'Origin': 'http://localhost',
                 'Sec-WebSocket-Key': 'aZwQ6W5X+KKAu9jzEdw8Mw==',
@@ -325,7 +326,12 @@ class PyTeleBirr:
             raise TokenExpired(
                 "[ Error ] : Token Expired"
             )
-        return _res.json()['data']
+        if _res.json()['data']:
+            return _res.json()['data']
+        else:
+            raise QRExpiredError(
+                "[ ERROR ] QR expired"
+            )
 
     def _get_umc_session_id(
             self,
@@ -333,24 +339,21 @@ class PyTeleBirr:
             phone: Union[str, int],
             content: Union[str, int]
     ) -> dict:
+        _data = json.dumps({"money": str(money),"msisdn": str(phone),"pin": password_fixer(self._passwd),"content": str(content)})
+        print(_data)
+        self._header['Content-Length'] = str(len(_data))
         _res = self._r.post(
             self._tele_url.format(
-                'service-transfe/getTransferinfo'
+                'service-transfe/getTransferInfo'
             ),
             headers=self._header,
-            data=json.dumps(
-                {
-                    "money": str(money),
-                    "msisdn": str(phone),
-                    "pin": self._base64_pass,
-                    "content": content
-                }
-            )
+            data=_data
         )
         if _res.json().get("code") in [401]:
             raise TokenExpired(
                 "[ Error ] : Token Expired"
             )
+        print(_res.text)
         return _res.json()['data']
 
     def send_payment(
@@ -363,7 +366,8 @@ class PyTeleBirr:
             phone=phone,
             money=amount,
             content=content
-        )
+        )['umcSessionId']
+        print(umc_id)
         _res = self._r.post(
             self._tele_url.format(
                 'service-transfe/syncTransferC2C'
@@ -372,7 +376,7 @@ class PyTeleBirr:
             data=json.dumps(
                 {
                     "confirmationAction": "1",
-                    "umcSessionid": umc_id,
+                    "umcSessionId": umc_id,
                     "flag": "",
                     "mid": phone
                 }
@@ -382,4 +386,8 @@ class PyTeleBirr:
             raise TokenExpired(
                 "[ Error ] : Token Expired"
             )
+        print(_res.text)
         return _res.json()['data']
+
+    def get_token(self):
+        return self._token

@@ -4,3 +4,7 @@ class CredentialError(Exception):
 
 class TokenExpired(Exception):
     pass
+
+
+class QRExpiredError(Exception):
+    pass
