@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='pytelebirr',
-    version='0.2.2',
+    version='0.2.3',
     packages=['pytelebirr', 'pytelebirr.errors'],
     url='https://github.com/telebirrapi/pytelebirr',
     license='MIT License',
