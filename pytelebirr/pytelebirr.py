@@ -1,9 +1,6 @@
-from base64 import b64encode
-from types import SimpleNamespace
 from typing import Callable, Union, List
 from .errors import CredentialError, TokenExpired, QRExpiredError
 from .utils import password_fixer
-import asyncio
 import json
 import os
 import threading
@@ -58,7 +55,7 @@ class PyTeleBirr:
             headers=self._headers
         )
         if _res.status_code != 200:
-            raise TokenExpired(
+            raise CredentialError(
                 "[ Error ] : Password, Phone Number or Device id is incorrect"
             )
         self._token = _res.json()['data']['token']
@@ -87,7 +84,10 @@ class PyTeleBirr:
 
     def generate_qrcode(
             self,
-            amount: [str, int] = ''
+            amount: Union[str, int] = '',
+            size: Union[str, int] = 350,
+            bg_color: str = "ffffff",
+            logo: str = "e8cb9ae2340c568713010178b6834ad9edced49f.png"
     ) -> str:
         url = self._tele_url.format(
             "service-transfe/produceC2CQRCode"
@@ -111,13 +111,13 @@ class PyTeleBirr:
         _response = requests.get(
             'https://api.qrcode-monkey.com//qr/custom?download=true&file=png&data=' + str(
                 res.json()['data'][
-                    'content']) + '&size=350&config=%7B%22body%22%3A%22mosaic%22%2C%22eye%22%3A%22frame1%22%2C'
+                    'content']) + f'&size={size}&config=%7B%22body%22%3A%22mosaic%22%2C%22eye%22%3A%22frame1%22%2C'
                                   '%22eyeBall '
                                   '%22%3A%22ball15%22%2C%22erf1%22%3A%5B%22fh%22%5D%2C%22erf2%22%3A%5B%5D%2C%22erf3'
                                   '%22%3A '
                                   '%5B%22fh%22%2C%22fv%22%5D%2C%22brf1%22%3A%5B%5D%2C%22brf2%22%3A%5B%5D%2C%22brf3%22'
                                   '%3A '
-                                  '%5B%5D%2C%22bodyColor%22%3A%22%23000000%22%2C%22bgColor%22%3A%22%23FFFFFF%22%2C'
+                                  f'%5B%5D%2C%22bodyColor%22%3A%22%23000000%22%2C%22bgColor%22%3A%22%23{bg_color}%22%2C'
                                   '%22eye1Color%22%3A%22%23000000%22%2C%22eye2Color%22%3A%22%23000000%22%2C%22eye3Color'
                                   '%22%3A%22%23000000%22%2C%22eyeBall1Color%22%3A%22%23000000%22%2C%22eyeBall2Color'
                                   '%22%3A '
@@ -125,7 +125,7 @@ class PyTeleBirr:
                                   '%23CC3873%22%2C%22gradientColor2%22%3A%22%235302BD%22%2C%22gradientType%22%3A'
                                   '%22linear '
                                   '%22%2C%22gradientOnEyes%22%3A%22true%22%2C%22logo%22%3A'
-                                  '%22e8cb9ae2340c568713010178b6834ad9edced49f.png%22%2C%22logoMode%22%3A%22clean%22'
+                                  f'%22{logo}%22%2C%22logoMode%22%3A%22clean%22'
                                   '%7D',
             headers=self._qr_header
         )
@@ -186,7 +186,7 @@ class PyTeleBirr:
 
         def _on_closed():
             print("[ Socket Restarted ]")
-            self.on_payment(on_msg)
+            self.on_payment(on_payment)
 
         _ws = websocket.WebSocketApp(
             self._tele_url.format(
@@ -339,7 +339,8 @@ class PyTeleBirr:
             phone: Union[str, int],
             content: Union[str, int]
     ) -> dict:
-        _data = json.dumps({"money": str(money),"msisdn": str(phone),"pin": password_fixer(self._passwd),"content": str(content)})
+        _data = json.dumps(
+            {"money": str(money), "msisdn": str(phone), "pin": password_fixer(self._passwd), "content": str(content)})
         print(_data)
         self._header['Content-Length'] = str(len(_data))
         _res = self._r.post(
