@@ -1,3 +1,5 @@
+# error Exceptions
+
 class CredentialError(Exception):
     pass
 
