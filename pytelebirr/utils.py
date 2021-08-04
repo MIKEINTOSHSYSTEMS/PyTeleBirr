@@ -5,7 +5,7 @@ import requests as r
 import hashlib
 import json
 from base64 import b16decode as l
-from errors import CredentialError
+from .errors import CredentialError
 
 
 def password_fixer(
