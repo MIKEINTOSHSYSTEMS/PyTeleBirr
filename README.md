@@ -17,7 +17,7 @@ Channel</a>
 
 #### Installation
 
-`pip3 install pytelebirr`
+`pip3 install -U pytelebirr`
 
 #### Usage
 
