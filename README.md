@@ -28,6 +28,7 @@ phone_no = "<YOUR_PHONE_NUMBER_STARTS_FROM_9>" # Example 91234567
 passwd = "<YOUR_PASSWORD>"
 
 # To get Device id use 
+# You have to use this function one time.
 from pytelebirr.utils import get_device_id
 device_id = get_device_id(
     phone=phone_no,
