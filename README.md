@@ -24,20 +24,42 @@ Channel</a>
 ````python
 from pytelebirr import PyTeleBirr
 
+phone_no = "<YOUR_PHONE_NUMBER_STARTS_FROM_9>" # Example 91234567
+passwd = "<YOUR_PASSWORD>"
+
+# To get Device id use 
+from pytelebirr.utils import get_device_id
+device_id = get_device_id(
+    phone=phone_no,
+    passwd=passwd,
+    d_id="<Your Mobile Device ID>" # to get this for android users use device id app for iphone users ¯\_(ツ)_/¯
+)
+# after calling this function verification code will be sent via sms check 127
+# Code has been sent via sms
+# Enter The Code You Received : enter your code here
+# and you will get this message on terminal/cmd Your Device_id :  ...
+
+
 # Initialize PyTelebirr
 telebirr = PyTeleBirr(
-    device_id="<YOUR_DEVICE_ID>",
-    phone_no="<YOUR_PHONE>",
-    passwd="<YOUR_PASSWORD>",
+    device_id=device_id,
+    phone_no=phone_no,
+    passwd=passwd,
 )
+
 # get your balance
 balance = telebirr.get_balance()
-# this returns object
+# this returns dict
 balance['balance']
 # 999999.00
 
 # generate beautiful qr code
-img_path = telebirr.generate_qrcode()
+# now you can custom your qr code size and background color and payment amount
+img_path = telebirr.generate_qrcode(
+    amount=5, # 5 in birr
+    size=200, # optional
+    bg_color="ffffff" # color don't use #
+)
 # this return image path 
 
 # refresh token tokens will expire in 86400s after login
@@ -46,7 +68,7 @@ telebirr.refresh_token()
 
 # on payment received method you can pass callable
 telebirr.on_payment(
-    on_payment= lambda m: print(m)
+    on_payment=lambda m: print(m)
 )
 # when payment received on_payment function will be called
 
@@ -75,9 +97,13 @@ telebirr.scan_qr(
 telebirr.send_payment(
     amount=5,
     phone="1234567890",
-    content="123456789" # content of qr code
+    content="123456789"  # content of qr code
 )
 # returns dict
+
+# get your token
+telebirr.get_token()
+# returns str your token
 
 ````
 
@@ -86,5 +112,6 @@ telebirr.send_payment(
 - Send payment via qr code and phone number
 - Checking balance
 - Generating beautiful qr code
+- you can custom your qr code 
 - Checking transactions
 - Waiting for payment and call function
