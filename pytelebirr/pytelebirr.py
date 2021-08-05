@@ -54,7 +54,7 @@ class PyTeleBirr:
             data=data,
             headers=self._headers
         )
-        if _res.status_code != 200:
+        if _res.json()['code'] != 200:
             raise CredentialError(
                 "[ Error ] : Password, Phone Number or Device id is incorrect"
             )
