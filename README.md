@@ -18,7 +18,9 @@ Channel</a>
 #### Installation
 
 `pip3 install -U pytelebirr`
-or
+ 
+ or
+
 `pip3 install -U git+https://github.com/TeleBirrApi/PyTeleBirr.git`
 
 #### Usage
